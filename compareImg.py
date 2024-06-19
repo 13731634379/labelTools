@@ -26,8 +26,9 @@ def find_duplicate_images(folder1, folder2):
 
 # 示例用法
 # folder_A = "/path/to/folder/A"
-folder_A = "D:/project/dataset/mcUAVdateset/img"
+folder_A = "D:/project/dataset/mcUAVdateset/img/train"
 # folder_B = "/path/to/folder/B"
-folder_B = "D:/project/dataset/mcUAVdateset/search/test2017"
+# folder_B = "D:/project/dataset/mcUAVdateset/search/test2017"
+folder_B = "D:/project/dataset/movies/pic"
 find_duplicate_images(folder_A, folder_B)
 

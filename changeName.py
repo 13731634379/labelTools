@@ -40,7 +40,7 @@ def batch_rename_files(directory, start_number,name_pre,log_txt):
 if __name__ == "__main__":
     # 输入要处理的目录路径
     # directory = input("请输入要处理的目录路径: ")
-    directory = "D:\project\dataset\mcUAVdateset\search\img\\train"
+    directory = "D:\project\dataset\mcUAVdateset\search\lab\\val"
     # directory = "D:\project\dataset\mcUAVdateset\search\img\\test"
     # directory = "D:\project\dataset\mcUAVdateset\img"
     # directory = "D:\project\dataset\mcUAVdateset\search\lab"
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # 输入起始数字
     start_number = int(input("请输入起始数字: "))
 
-    name_pre="train_";
+    name_pre="val_";
 
     log_txt="D:/project/dataset/mcUAVdateset/changeNameLog.txt"
 

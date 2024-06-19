@@ -59,10 +59,10 @@ def extract_frames(video_path, output_folder,num_frames_per_sec,pre_name, start_
 if __name__ == "__main__":
     # 输入视频文件路径
     # video_path = input("请输入视频文件路径: ")
-    video_path = "D:\project\dataset\movies\\6.mp4"
+    video_path = "D:\project\dataset\movies\\11.mp4"
 
     #名字前缀
-    pre_name = "6"
+    pre_name = "11"
     print(video_path)
 
     # 输入截图保存的文件夹路径
@@ -71,13 +71,13 @@ if __name__ == "__main__":
     print(output_folder)
 
     # 输入开始截图的时间（秒），如果不指定则为None
-    # start_time_input = 0
-    start_time_input = None
+    start_time_input = 50
+    # start_time_input = None
     start_time = float(start_time_input) if start_time_input else None
 
     # 输入结束截图的时间（秒），如果不指定则为None
-    # end_time_input = 2
-    end_time_input=None
+    end_time_input = 76
+    # end_time_input=None
     end_time = float(end_time_input) if end_time_input else None
 
     # 每秒截图的次数
