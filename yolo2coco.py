@@ -1,75 +1,89 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2024/4/1 
-# @Author  : machao
-# @Email   : 13731634379@163.com
-# @File    : yolo2coco.py
-# @Software: PyCharm
-# 作用      :没执行过需要修改
 import os
+import cv2
 import json
-# import cv2
+from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+import argparse
 
-id_counter = 0  # To record the id
-# FILE_PATH = 'put your image folder path here!'  #####
-FILE_PATH = 'D:\project\dataset\mcUAVdateset\img\\val'  #####
-out = {'annotations': [],
-       # 'categories': [{"id": 1, "name": "cricoid_cartilage", "supercategory": ""},
-       #                {"id": 2, "name": "thyroid_cartilage", "supercategory": ""}],
-       'categories': [{"id": 1, "name": "UAV", "UAV": ""}],
-       ##### change the categories to match your dataset!
-       'images': [],
-       'info': {"contributor": "", "year": "", "version": "", "url": "", "description": "", "date_created": ""},
-       'licenses': {"id": 0, "name": "", "url": ""}
-       }
+# classes = ['airplane', 'ship', 'storage tank', 'baseball diamond', 'tennis court', 'basketball court', 'ground track field','harbor', 'bridge', 'vehicle']
+classes = ['guan', 'kai']
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--image_path', default=r'D:\project\1\test',type=str, help="path of images")
+parser.add_argument('--label_path', default=r'D:\project\1\label_test',type=str, help="path of labels .txt")
+parser.add_argument('--save_path', type=str,default=r'D:\project\1\test.json', help="if not split the dataset, give a path to a json file")
+arg = parser.parse_args()
 
-def annotations_data(whole_path, image_id):
-    # id, bbox, iscrowd, image_id, category_id
-    global id_counter
-    txt = open(whole_path, 'r')
-    for line in txt.readlines():  # if txt.readlines is null, this for loop would not run
-        data = line.strip()
-        data = data.split()
-        # convert the center into the top-left point!
-        data[1] = float(data[1]) * 800 - 0.5 * float(data[3]) * 800  ##### change the 800 to your raw image width
-        data[2] = float(data[2]) * 600 - 0.5 * float(data[4]) * 600  ##### change the 600 to your raw image height
-        data[3] = float(data[3]) * 800  ##### change the 800 to your raw image width
-        data[4] = float(data[4]) * 600  ##### change the 600 to your raw image height
-        bbox = [data[1], data[2], data[3], data[4]]
-        ann = {'id': id_counter,
-               'bbox': bbox,
-               'area': data[3] * data[4],
-               'iscrowd': 0,
-               'image_id': int(image_id),
-               'category_id': int(data[0]) + 1
-               }
-        out['annotations'].append(ann)
-        id_counter = id_counter + 1
+def yolo2coco(arg):
+    print("Loading data from ", arg.image_path, arg.label_path)
 
+    assert os.path.exists(arg.image_path)
+    assert os.path.exists(arg.label_path)
+    
+    originImagesDir = arg.image_path                                   
+    originLabelsDir = arg.label_path
+    # images dir name
+    indexes = os.listdir(originImagesDir)
 
-def images_data(file_name):
-    # id, height, width, file_name
-    id = file_name.split('.')[0]
-    file_name = id + '.jpg'  ##### change '.jpg' to other image formats if the format of your image is not .jpg
-    imgs = {'id': int(id),
-            'height': 600,  ##### change the 600 to your raw image height
-            'width': 800,  ##### change the 800 to your raw image width
-            'file_name': file_name,
-            "coco_url": "",
-            "flickr_url": "",
-            "date_captured": 0,
-            "license": 0
-            }
-    out['images'].append(imgs)
+    dataset = {'categories': [], 'annotations': [], 'images': []}
+    for i, cls in enumerate(classes, 0):
+        dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
+    
+    # 标注的id
+    ann_id_cnt = 0
+    for k, index in enumerate(tqdm(indexes)):
+        # 支持 png jpg 格式的图片.
+        txtFile = f'{index[:index.rfind(".")]}.txt'
+        stem = index[:index.rfind(".")]
+        # 读取图像的宽和高
+        try:
+            im = cv2.imread(os.path.join(originImagesDir, index))
+            height, width, _ = im.shape
+        except Exception as e:
+            print(f'{os.path.join(originImagesDir, index)} read error.\nerror:{e}')
+        # 添加图像的信息
+        if not os.path.exists(os.path.join(originLabelsDir, txtFile)):
+            # 如没标签，跳过，只保留图片信息.
+            continue
+        dataset['images'].append({'file_name': index,
+                            'id': stem,
+                            'width': width,
+                            'height': height})
+        with open(os.path.join(originLabelsDir, txtFile), 'r') as fr:
+            labelList = fr.readlines()
+            for label in labelList:
+                label = label.strip().split()
+                x = float(label[1])
+                y = float(label[2])
+                w = float(label[3])
+                h = float(label[4])
 
+                # convert x,y,w,h to x1,y1,x2,y2
+                H, W, _ = im.shape
+                x1 = (x - w / 2) * W
+                y1 = (y - h / 2) * H
+                x2 = (x + w / 2) * W
+                y2 = (y + h / 2) * H
+                # 标签序号从0开始计算, coco2017数据集标号混乱，不管它了。
+                cls_id = int(label[0])   
+                width = max(0, x2 - x1)
+                height = max(0, y2 - y1)
+                dataset['annotations'].append({
+                    'area': width * height,
+                    'bbox': [x1, y1, width, height],
+                    'category_id': cls_id,
+                    'id': ann_id_cnt,
+                    'image_id': stem,
+                    'iscrowd': 0,
+                    # mask, 矩形是从左上角点按顺时针的四个顶点
+                    'segmentation': [[x1, y1, x2, y1, x2, y2, x1, y2]]
+                })
+                ann_id_cnt += 1
 
-if __name__ == '__main__':
-    files = os.listdir(FILE_PATH)
-    files.sort()
-    for file in files:
-        whole_path = os.path.join(FILE_PATH, file)
-        annotations_data(whole_path, file.split('.')[0])
-        images_data(file)
+    # 保存结果
+    with open(arg.save_path, 'w') as f:
+        json.dump(dataset, f)
+        print('Save annotation to {}'.format(arg.save_path))
 
-    with open('instances_merge_train.json', 'w') as outfile:  ##### change the str to the json file name you want
-        json.dump(out, outfile, separators=(',', ':'))
+if __name__ == "__main__":
+    yolo2coco(arg)

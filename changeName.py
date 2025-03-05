@@ -4,7 +4,7 @@
 # @Email   : 13731634379@163.com
 # @File    : changeName.py
 # @Software: PyCharm
-# 作用      :修改文件名称,代修改文件按名称依次进行名称修改
+# 作用      :修改文件名称,待修改文件按名称依次进行名称修改
 import os
 import datetime
 
@@ -40,7 +40,8 @@ def batch_rename_files(directory, start_number,name_pre,log_txt):
 if __name__ == "__main__":
     # 输入要处理的目录路径
     # directory = input("请输入要处理的目录路径: ")
-    directory = "D:\project\dataset\mcUAVdateset\search\lab\\val"
+    # directory = "D:\project\dataset\mcUAVdateset\search\lab\\val"
+    directory = "D:\project\dataset\movies\pic"
     # directory = "D:\project\dataset\mcUAVdateset\search\img\\test"
     # directory = "D:\project\dataset\mcUAVdateset\img"
     # directory = "D:\project\dataset\mcUAVdateset\search\lab"
@@ -51,9 +52,10 @@ if __name__ == "__main__":
     # 输入起始数字
     start_number = int(input("请输入起始数字: "))
 
-    name_pre="val_";
+    name_pre="test_";
 
-    log_txt="D:/project/dataset/mcUAVdateset/changeNameLog.txt"
+    # log_txt="D:/project/dataset/mcUAVdateset/changeNameLog.txt"
+    log_txt="D:/project/dataset/movies/pic/changeNameLog.txt"
 
     # 调用函数批量重命名文件
     batch_rename_files(directory, start_number,name_pre,log_txt)
