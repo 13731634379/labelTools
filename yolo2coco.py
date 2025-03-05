@@ -9,9 +9,9 @@ import argparse
 classes = ['guan', 'kai']
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--image_path', default=r'D:\project\1\test',type=str, help="path of images")
-parser.add_argument('--label_path', default=r'D:\project\1\label_test',type=str, help="path of labels .txt")
-parser.add_argument('--save_path', type=str,default=r'D:\project\1\test.json', help="if not split the dataset, give a path to a json file")
+parser.add_argument('--image_path', default=r'D:\project\1\train',type=str, help="path of images")
+parser.add_argument('--label_path', default=r'D:\project\1\train_l',type=str, help="path of labels .txt")
+parser.add_argument('--save_path', type=str,default=r'D:\project\1\train.json', help="if not split the dataset, give a path to a json file")
 arg = parser.parse_args()
 
 def yolo2coco(arg):
@@ -26,7 +26,7 @@ def yolo2coco(arg):
     indexes = os.listdir(originImagesDir)
 
     dataset = {'categories': [], 'annotations': [], 'images': []}
-    for i, cls in enumerate(classes, 0):
+    for i, cls in enumerate(classes, 1):
         dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
     
     # 标注的id
@@ -34,7 +34,8 @@ def yolo2coco(arg):
     for k, index in enumerate(tqdm(indexes)):
         # 支持 png jpg 格式的图片.
         txtFile = f'{index[:index.rfind(".")]}.txt'
-        stem = index[:index.rfind(".")]
+        # stem = index[:index.rfind(".")]
+        stem = k
         # 读取图像的宽和高
         try:
             im = cv2.imread(os.path.join(originImagesDir, index))
@@ -65,7 +66,7 @@ def yolo2coco(arg):
                 x2 = (x + w / 2) * W
                 y2 = (y + h / 2) * H
                 # 标签序号从0开始计算, coco2017数据集标号混乱，不管它了。
-                cls_id = int(label[0])   
+                cls_id = int(label[0])+1
                 width = max(0, x2 - x1)
                 height = max(0, y2 - y1)
                 dataset['annotations'].append({
